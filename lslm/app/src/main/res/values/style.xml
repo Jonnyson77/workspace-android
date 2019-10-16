@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <!-- Customize your theme here. -->
+    <item name="colorPrimary">@color/colorPrimary</item>
+    <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+    <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <style name="wrapLiner">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginLeft">33dp</item>
+        <item name="android:layout_marginRight">33dp</item>
+        <item name="android:divider">@drawable/divider</item>
+        <item name="android:showDividers">middle|end</item>
+    </style>
+    <style name="inputLine">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">20dp</item>
+    </style>
+    <style name="imageInput">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginLeft">13dp</item>
+        <item name="android:layout_marginBottom">12dp</item>
+    </style>
+    <style name="InputEditText">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:background">@null</item>
+        <item name="android:textColor">@drawable/input_textcolor</item>
+        <item name="android:textSize">19sp</item>
+        <item name="android:layout_marginLeft">17dp</item>
+        <item name="android:layout_marginBottom">12dp</item>
+    </style>
+    <style name="button_base">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:stateListAnimator">@null</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">19sp</item>
+        <item name="android:layout_marginTop">21dp</item>
+    </style>
+    <style name="button" parent="button_base">
+        <item name="android:background">@drawable/login_press</item>
+    </style>
+    <style name="button_none" parent="button_base">
+        <item name="android:background">@drawable/regit_press</item>
+    </style>
+
+    <style name="textView">
+        <item name="android:layout_gravity">center</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">#e8495b </item>
+    </style>
+
+    <style name="topLine">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+
+    <style name="imageButton">
+        <item name="android:background">@null</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_marginLeft">10dp</item>
+        <item name="android:layout_marginTop">14dp</item>
+        <item name="android:layout_marginBottom">15dp</item>
+    </style>
+</resources>

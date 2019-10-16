@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    android:background="@null"
+    android:orientation="vertical">
+    <!--顶部-->
+    <LinearLayout
+        style="@style/topLine">
+        <ImageView
+            android:gravity="center"
+            style="@style/imageButton"
+            android:src="@drawable/arrow" />
+
+        <TextView
+            style="@style/textView"
+            android:gravity="center"
+            android:layout_marginLeft="10dp"
+            android:text="注册"
+            android:textColor="#ff252525"
+            android:textSize="19sp" />
+    </LinearLayout>
+
+    <!--中间部分-->
+    <LinearLayout
+        style="@style/wrapLiner"
+        android:orientation="vertical"
+        android:layout_marginTop="64dp">
+        <LinearLayout
+            style="@style/inputLine">
+            <ImageView
+                style="@style/imageInput"
+                android:src="@drawable/accountnumber"/>
+            <EditText
+                style="@style/InputEditText"
+                android:hint="请输入手机号码"
+                />
+        </LinearLayout>
+        <LinearLayout
+            style="@style/inputLine">
+            <ImageView
+                style="@style/imageInput"
+                android:src="@drawable/password"/>
+            <EditText
+                style="@style/InputEditText"
+                android:hint="请输入密码"
+                />
+        </LinearLayout>
+        <LinearLayout
+            style="@style/inputLine">
+            <ImageView
+                style="@style/imageInput"
+                android:src="@drawable/invitationcode"/>
+            <EditText
+                style="@style/InputEditText"
+                android:hint="请输入邀请码"
+                />
+        </LinearLayout>
+
+        <LinearLayout
+            style="@style/inputLine">
+             <LinearLayout
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content">
+
+                 <ImageView
+                     style="@style/imageInput"
+                     android:src="@drawable/verificationcode"/>
+                 <EditText
+                     style="@style/InputEditText"
+                     android:hint="请输入验证码"
+                     />
+             </LinearLayout>
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:gravity="right">
+                <TextView
+                    android:layout_gravity="center"
+                    style="@style/textView"
+                    android:padding="7dp"
+                    android:background="@drawable/shape"
+                    android:textColor="#fafafa"
+                    android:text="获取验证码" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+    <LinearLayout
+        style="@style/wrapLiner"
+        android:showDividers="none"
+        android:orientation="vertical"
+        android:layout_marginTop="37dp">
+        <Button
+            style="@style/button"
+            android:id="@+id/next_step"
+            android:text="确定"
+            android:textColor="#fafafa"
+             />
+    </LinearLayout>
+
+
+</LinearLayout>
