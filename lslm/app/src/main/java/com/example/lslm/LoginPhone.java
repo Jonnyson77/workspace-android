@@ -5,22 +5,21 @@ import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.CountDownTimer;
+import android.os.Handler;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
-import android.text.method.HideReturnsTransformationMethod;
-import android.text.method.PasswordTransformationMethod;
-import android.text.style.ForegroundColorSpan;
+import android.text.TextPaint;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import java.security.PrivateKey;
 
 public class LoginPhone extends Activity {
     private String TAG = "MainActivity";
@@ -34,8 +33,12 @@ public class LoginPhone extends Activity {
     private EditText mLoginPhone;
     private Button mLoginBtn;
     private ImageView mRadioView;
-    private static boolean  isChanged = false;
-    private static boolean  isGree = true;
+    private static boolean  isAgree = true;
+    private static  int mClickTimes; // 点击次数
+    private static boolean mStartSendMessage = false;
+    private long mClickTime; // 点击时间
+    private Handler mHandler;
+    private TimeCount time;
 
 
     @Override
@@ -56,6 +59,8 @@ public class LoginPhone extends Activity {
         mLoginPhone= (EditText)findViewById(R.id.phoneNumber);
         mRadioView =(ImageView)findViewById(R.id.radioView);
         mGetVerifyCode = (TextView) findViewById(R.id.getVerifyCode);
+        mHandler = new Handler();
+        time = new TimeCount(60000, 1000);
 
 
         // 设置监听事件
@@ -72,6 +77,7 @@ public class LoginPhone extends Activity {
             public void onClick(View view) {
                 Intent intent = new Intent(LoginPhone.this,MainActivity.class);
                 startActivity(intent);
+                finish();
             }
         });
 
@@ -102,19 +108,22 @@ public class LoginPhone extends Activity {
             public void onClick(View view) {
                String password = mLoginPassword.getText().toString();
                String phone = mLoginPhone.getText().toString();
+
                Toast.makeText(LoginPhone.this,"login ...",Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(LoginPhone.this,PageMainActivity.class);
+                startActivity(intent);
             }
         });
 
         mRadioView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (isChanged){
+                if (isAgree){
                     mRadioView.setImageResource(R.drawable.radio_on);
-                    isChanged =  false ;
+                    isAgree =  false ;
                 }else {
                     mRadioView.setImageResource(R.drawable.radio);
-                    isChanged =  true ;
+                    isAgree =  true ;
                 }
             }
         });
@@ -122,19 +131,110 @@ public class LoginPhone extends Activity {
         mGetVerifyCode.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Toast.makeText(LoginPhone.this,"正在开发中",Toast.LENGTH_SHORT).show();
+                mClickTime = System.currentTimeMillis();
+                mClickTimes = mClickTimes + 1 ;
+                time.start();
+
+//                Log.d(TAG, "onClick: mClickTimes " + mClickTimes);
+//                Log.d(TAG, "onClick: mClickTime " + mClickTime );
+//                if (mClickTimes <= 2){
+//                    Toast.makeText(LoginPhone.this,"验证码已发送至手机,请稍等...",Toast.LENGTH_SHORT).show();
+//                }else {
+//                    if ((System.currentTimeMillis() - mClickTime) <= 60000){
+//                        Toast.makeText(LoginPhone.this,"操作频繁,请稍等....",Toast.LENGTH_SHORT).show();
+//                        Runnable mRunnable =  new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                //在这里执行定时需要的操作
+//                                mClickTimes = 0;
+//                                mStartSendMessage = false;
+//                                mGetVerifyCode.setBackground(getDrawable(R.drawable.shape));
+//                            }
+//                        };
+//                        if (!mStartSendMessage){
+//                            mHandler.postDelayed(mRunnable, 60000);
+//                            mStartSendMessage = true;
+//                            mGetVerifyCode.setBackground(getDrawable(R.drawable.shape_pressed));
+//                        }
+//                    }
+//                }
             }
         });
     }
 
     public void  changeTextColor(){
         String str="登录即代表您已同意立刷服务协议";
-        int fstart=str.indexOf("立刷服务协议");
-        int fend=fstart+"立刷服务协议".length();
         SpannableStringBuilder style=new SpannableStringBuilder(str);
-        style.setSpan(new ForegroundColorSpan(Color.RED),fstart,fend,Spannable.SPAN_EXCLUSIVE_INCLUSIVE);
+        ClickableSpan clickableSpan = new ClickableSpan() {
+            @Override
+            public void onClick(View view) {
+                Toast.makeText(LoginPhone.this, "请不要点我", Toast.LENGTH_SHORT).show();
+            }
+            @Override
+            public void updateDrawState(TextPaint ds) {
+                super.updateDrawState(ds);
+                ds.setColor(Color.RED);//设置颜色
+                ds.setUnderlineText(false);//去掉下划线
+            }
+        };
+        style.setSpan(clickableSpan, 9,15, Spannable.SPAN_EXCLUSIVE_INCLUSIVE);
         TextView tvColor=(TextView) findViewById(R.id.gree);
         tvColor.setText(style);
-        tvColor.setText(style);
+        tvColor.setMovementMethod(LinkMovementMethod.getInstance());
+    }
+    public boolean getAgreement(){
+        return  isAgree ;
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
+
+
+    class TimeCount extends CountDownTimer {
+        public TimeCount(long millisInFuture, long countDownInterval) {
+            super(millisInFuture, countDownInterval);
+        }
+
+        @Override
+        public void onTick(long millisUntilFinished) {
+            mGetVerifyCode.setBackground(getDrawable(R.drawable.shape_pressed));
+            mGetVerifyCode.setClickable(false);
+            mGetVerifyCode.setText("("+millisUntilFinished / 1000 +") 秒重新发送");
+        }
+
+        @Override
+        public void onFinish() {
+            mGetVerifyCode.setText("重新获取验证码");
+            mGetVerifyCode.setClickable(true);
+            mGetVerifyCode.setBackground(getDrawable(R.drawable.shape));
+
+        }
     }
 }
