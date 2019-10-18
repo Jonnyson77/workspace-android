@@ -117,7 +117,7 @@ public class Register extends Activity {
 
         @Override
         public void onFinish() {
-            mGetVerifyCode.setText("重新获取验证码");
+            mGetVerifyCode.setText(getText(R.string.reget_verifycode));
             mGetVerifyCode.setClickable(true);
             mGetVerifyCode.setBackground(getDrawable(R.drawable.shape));
 

@@ -163,7 +163,7 @@ public class LoginPhone extends Activity {
     }
 
     public void  changeTextColor(){
-        String str="登录即代表您已同意立刷服务协议";
+        String str= (String) getText(R.string.agreement);
         SpannableStringBuilder style=new SpannableStringBuilder(str);
         ClickableSpan clickableSpan = new ClickableSpan() {
             @Override
@@ -231,7 +231,7 @@ public class LoginPhone extends Activity {
 
         @Override
         public void onFinish() {
-            mGetVerifyCode.setText("重新获取验证码");
+            mGetVerifyCode.setText(getText(R.string.reget_verifycode));
             mGetVerifyCode.setClickable(true);
             mGetVerifyCode.setBackground(getDrawable(R.drawable.shape));
 

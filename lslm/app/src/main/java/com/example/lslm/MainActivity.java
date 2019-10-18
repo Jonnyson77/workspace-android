@@ -23,7 +23,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.Utils.Utils;
+import com.example.bean.JsonRootBean;
+import com.example.bean.LoginBean;
 import com.example.net.ConnectApi;
+import com.google.gson.Gson;
 
 import java.io.IOException;
 
@@ -33,6 +36,9 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+import rx.Observable;
+import rx.Observer;
+import rx.Subscriber;
 
 public class MainActivity extends Activity {
     private String TAG = "MainActivity";
@@ -48,6 +54,7 @@ public class MainActivity extends Activity {
     private ImageView mRadioView;
     private static boolean  isChange = false;
     private static boolean  isAgree = true;
+    private  static  boolean  REQURST = false;
 
 
     @Override
@@ -106,7 +113,8 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 Log.d(TAG, "onCreate: ljq -----------help");
-                Toast.makeText(MainActivity.this,"正在开发",Toast.LENGTH_SHORT).show();
+                Rxjava();
+                // Toast.makeText(MainActivity.this,"正在开发",Toast.LENGTH_SHORT).show();
             }
         });
         mDisplayView.setOnClickListener(new View.OnClickListener() {
@@ -133,10 +141,9 @@ public class MainActivity extends Activity {
                 Log.d(TAG,"ljq   password " + password.length());
                 Log.d(TAG,"ljq   phone " + phone.length());
 
-                Log.d(TAG, "onResume:  llll  ljq  ");
-                callNet();
-                Log.d(TAG, "onResume:  2222   ljq ");
-
+                LoginBean mLoginBean = new LoginBean();
+                mLoginBean.setMobile(phone);
+                mLoginBean.setPassword(password);
                if (phone.length()==0 || password.length() ==0){
                    Toast.makeText(MainActivity.this,"手机号码不能为空 或者 密码不能为空",Toast.LENGTH_SHORT).show();
                    return;
@@ -152,7 +159,7 @@ public class MainActivity extends Activity {
                        return;
                    }else{
                        // 开始判断账户密码是否有效
-                       if (getUser(phone,password)){
+                       if (callNet(mLoginBean)){
                            if (getAgreement()){
                                Toast.makeText(MainActivity.this, "登录成功", Toast.LENGTH_SHORT).show();
                                Intent intent = new Intent(MainActivity.this,PageMainActivity.class);
@@ -192,7 +199,7 @@ public class MainActivity extends Activity {
     }
 
     public void  changeTextColor(){
-        String str="登录即代表您已同意立刷服务协议";
+        String str= (String) getText(R.string.agreement);
         SpannableStringBuilder style=new SpannableStringBuilder(str);
         ClickableSpan clickableSpan = new ClickableSpan() {
 
@@ -222,6 +229,8 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        Log.d(TAG, "onResume:   getApplicationContext() " +  getApplicationContext());
+        Log.d(TAG, "onResume:   getApplication()   " +  getApplication());
 
     }
 
@@ -245,20 +254,28 @@ public class MainActivity extends Activity {
         super.onDestroy();
     }
 
-    public boolean callNet(){
+    public boolean callNet(LoginBean loginBean){
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://www.baidu.com")
+                .baseUrl(getString(R.string.baseUrl))
                 .addConverterFactory(GsonConverterFactory.create())//通过Gson的格式来解析数据
                 .build();
         ConnectApi connectApi = retrofit.create(ConnectApi.class);
-        connectApi.getUserInfo().enqueue(new Callback<ResponseBody>() {
+        connectApi.Login(loginBean).enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 String result = null;
                 try {
+                    Log.d(TAG,"ljq onResponse: ljq 2222222 ");
                     result = response.body().string();
-                    Log.d(TAG,"ljq getUser: ljq 11111 ");
+                    int code = response.code();
+                    JsonRootBean jsonRootBean = new Gson().fromJson(result, JsonRootBean.class);
+                    Log.d(TAG,"ljq result : ljq code " + code);
                     Log.d(TAG,"ljq result : ljq result " + result);
+                    Log.d(TAG,"ljq result :  jsonRootBean " + jsonRootBean.getCode());
+                    Log.d(TAG,"ljq result :  jsonRootBean " +  jsonRootBean.getMsg());
+                    if (code ==200){
+                        REQURST = true;
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -266,10 +283,40 @@ public class MainActivity extends Activity {
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
-                Log.d(TAG,"ljq getUser: ljq 2222222 ");
+                Log.d(TAG,"ljq onFailure: ljq 2222222 ");
+                String result = t.toString();
+                Log.d(TAG,"ljq result : ljq result " + result);
                 Toast.makeText(MainActivity.this,"失败",Toast.LENGTH_LONG).show();
             }
         });
-        return  true;
+        return  REQURST;
     }
+
+    public void Rxjava(){
+        Observable<String> observabele = Observable.create(new Observable.OnSubscribe<String>() {
+            @Override
+            public void call(Subscriber<? super String> subscriber) {
+                subscriber.onNext("Hello RxJava");
+                subscriber.onCompleted();
+            }
+        });
+        Observer<String> observer = new Observer<String>() {
+            @Override
+            public void onCompleted() {
+                System.out.println("-------------------->>>>Completed");
+            }
+
+            @Override
+            public void onError(Throwable e) {
+            }
+
+            @Override
+            public void onNext(String s) {
+                System.out.println("------------onNext---------->>>>>>>" + s);
+            }
+        };
+        observabele.subscribe(observer);
+    }
+
+
 }

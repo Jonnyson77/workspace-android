@@ -17,7 +17,7 @@
             style="@style/textView"
             android:gravity="center"
             android:layout_marginLeft="10dp"
-            android:text="注册"
+            android:text="@string/register"
             android:textColor="#ff252525"
             android:textSize="19sp" />
     </LinearLayout>
@@ -35,7 +35,7 @@
             <EditText
                 android:id="@+id/phoneNumber"
                 style="@style/InputEditText"
-                android:hint="请输入手机号码"
+                android:hint="@string/input_phonenumber"
                 />
         </LinearLayout>
         <LinearLayout
@@ -46,7 +46,7 @@
             <EditText
                 android:id="@+id/password"
                 style="@style/InputEditText"
-                android:hint="请输入密码"
+                android:hint="@string/inputpassword"
                 />
         </LinearLayout>
         <LinearLayout
@@ -57,7 +57,7 @@
             <EditText
                 android:id="@+id/invitationcode"
                 style="@style/InputEditText"
-                android:hint="请输入邀请码"
+                android:hint="@string/input_invitationcode"
                 />
         </LinearLayout>
 
@@ -73,7 +73,7 @@
                  <EditText
                      android:id="@+id/verificationcode"
                      style="@style/InputEditText"
-                     android:hint="请输入验证码"
+                     android:hint="@string/input_verificationcode"
                      />
              </LinearLayout>
             <LinearLayout
@@ -87,7 +87,7 @@
                     android:padding="7dp"
                     android:background="@drawable/shape"
                     android:textColor="#fafafa"
-                    android:text="获取验证码" />
+                    android:text="@string/get_verificationcode" />
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
@@ -99,7 +99,7 @@
         <Button
             style="@style/button"
             android:id="@+id/next_step"
-            android:text="确定"
+            android:text="@string/confirm"
             android:textColor="#fafafa"
              />
     </LinearLayout>
