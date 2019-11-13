@@ -1,9 +1,13 @@
 package com.example.myapplication11;
 
+import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothHeadset;
+import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
@@ -20,12 +24,15 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class Bluetooth extends Activity implements View.OnClickListener{
     String TAG ="Bluetooth";
-    private BluetoothAdapter bluetoothAdapter  = BluetoothAdapter.getDefaultAdapter();
+    BluetoothManager mBluetoothManager ;
+    private BluetoothAdapter bluetoothAdapter ;
     private BluetoothBroadCast bluetoothBroadCast = new BluetoothBroadCast();
     private IntentFilter intentFilter = new IntentFilter();
     private BluetoothProfile.ServiceListener serviceListener;
@@ -33,11 +40,18 @@ public class Bluetooth extends Activity implements View.OnClickListener{
     private Button btn_on;
     private Button btn_off;
     private Button btn_scan;
+    private Button btn_stop;
+    private Button btn_scanle;
+    private Button btn_paired;
+    private BluetoothLeScanner bluetoothLeScanner;
     private List<BluetoothDevice> lists = new ArrayList<BluetoothDevice>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.bluetooth);
+        bluetoothBroadCast = new BluetoothBroadCast();
+        mBluetoothManager =(BluetoothManager)getSystemService(Context.BLUETOOTH_SERVICE);
+        bluetoothAdapter =mBluetoothManager.getAdapter();
         init();
     }
 
@@ -60,9 +74,32 @@ public class Bluetooth extends Activity implements View.OnClickListener{
             case R.id.btn_scan:
                 ScanBluetoothLe();
                 break;
+            case R.id.btn_stop :
+                StopScanBluetooth();
+                break;
+            case R.id.btn_scanle :
+                ScanBluetooth();
+                break;
+            case R.id.btn_paired :
+                PairBluetooth();
+                break;
             default:
                 break;
         }
+    }
+
+    private void PairBluetooth() {
+        // iPhone----48:3B:38:E0:FF:20
+        Log.d(TAG, "PairBluetooth: --" );
+        String address = "48:3B:38:E0:FF:20";
+        for (int i =0 ;i<lists.size();i++){
+           if (  lists.get(i).getAddress().equals(address)){
+               BluetoothDevice device = lists.get(i);
+               // device.createBond();
+
+           }
+        }
+        
     }
 
     public void ScanBluetooth() {
@@ -83,6 +120,23 @@ public class Bluetooth extends Activity implements View.OnClickListener{
         }
     }
 
+     public void StopScanBluetooth(){
+         Log.d(TAG, "OnBluetooth: ljq --stop scan Bluetooth" );
+         if (bluetoothAdapter!=null){
+             boolean enabled = bluetoothAdapter.isEnabled();
+             if (enabled){
+                 boolean discovering = bluetoothAdapter.isDiscovering();
+                    Log.d(TAG, "OnBluetooth: ljq --discovering  "  + discovering );
+                     bluetoothLeScanner.stopScan(scanCallback);
+                     printfBluetooth();
+             }else {
+                 Toast.makeText(this,"蓝牙未扫描，请开启蓝牙扫描",Toast.LENGTH_SHORT).show();
+             }
+         }else {
+             Toast.makeText(this,"蓝牙不可用", Toast.LENGTH_SHORT).show();
+         }
+     }
+
     public void ScanBluetoothLe() {
         Log.d(TAG, "OnBluetooth: ljq -- Lescan Bluetooth" );
         if (bluetoothAdapter!=null){
@@ -91,7 +145,11 @@ public class Bluetooth extends Activity implements View.OnClickListener{
                 boolean discovering = bluetoothAdapter.isDiscovering();
                 if (!discovering){
                     lists.clear();
-                    BluetoothLeScanner bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
+                    Utils.checkPermission(Bluetooth.this,new String []{
+                            Manifest.permission.ACCESS_COARSE_LOCATION,
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                    });
+                    bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
                     bluetoothLeScanner.startScan(null,createScanSetting(),scanCallback);
                 }
             }else {
@@ -119,13 +177,20 @@ public class Bluetooth extends Activity implements View.OnClickListener{
         btn_on = (Button)findViewById(R.id.btn_on);
         btn_off = (Button)findViewById(R.id.btn_off);
         btn_scan = (Button)findViewById(R.id.btn_scan);
+        btn_stop = (Button)findViewById(R.id.btn_stop);
+        btn_scanle = (Button) findViewById(R.id.btn_scanle);
+        btn_paired =(Button)findViewById(R.id.btn_paired);
 
+        btn_paired.setOnClickListener(this);
+        btn_scanle.setOnClickListener(this);
+        btn_stop.setOnClickListener(this);
         btn_scan.setOnClickListener(this);
         btn_on.setOnClickListener(this);
         btn_off.setOnClickListener(this);
 
 
         intentFilter.addAction(BluetoothDevice.ACTION_FOUND);
+        intentFilter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED );
         intentFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
 
         registerReceiver(bluetoothBroadCast,intentFilter);
@@ -144,9 +209,16 @@ public class Bluetooth extends Activity implements View.OnClickListener{
     }
     private void printfBluetooth(){
         for (int i = 0; i < lists.size() ; i++ ){
-            Log.d(TAG, "printfBluetooth: bluetooth : " + lists.get(i).getName() + "----" +  lists.get(i).getAddress() + "---" +
-                    lists.get(i).getBluetoothClass() + "----" + lists.get(i).getBondState() + "-----" + lists.get(i) .getUuids()
-            + "----" + lists.get(i).getType());
+            if (lists.get(i).getName() == null) {
+                Log.d(TAG, "printfBluetooth: bluetooth : " + lists.get(i).getAddress()  + "----" +  lists.get(i).getAddress() + "---" +
+                        lists.get(i).getBluetoothClass() + "----" + lists.get(i).getBondState() + "-----" + lists.get(i) .getUuids()
+                        + "----" + lists.get(i).getType());
+            }else {
+                Log.d(TAG, "printfBluetooth: bluetooth : " + lists.get(i).getName() + "----" +  lists.get(i).getAddress() + "---" +
+                        lists.get(i).getBluetoothClass() + "----" + lists.get(i).getBondState() + "-----" + lists.get(i) .getUuids()
+                        + "----" + lists.get(i).getType());
+
+            }
         }
     }
     class BluetoothBroadCast extends BroadcastReceiver{
@@ -161,7 +233,10 @@ public class Bluetooth extends Activity implements View.OnClickListener{
                 Log.d(TAG, "onReceive:  lists " + lists.size());
                 Log.d(TAG, "onReceive: --------");
                 printfBluetooth();
-
+            }else if (action.equals(BluetoothDevice.ACTION_BOND_STATE_CHANGED )){
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                Log.d(TAG, "onReceive: device " +  device.getAddress());
+                Log.d(TAG, "onReceive: device " +  device.getBondState());
             }
         }
     }
@@ -179,18 +254,37 @@ public class Bluetooth extends Activity implements View.OnClickListener{
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
             super.onScanResult(callbackType, result);
-            Log.d(TAG, "onScanResult: == " + result.getScanRecord().getDeviceName().toString());
+            Log.d(TAG, "onScanResult: 1  == " + result.getDevice().getName());
+            if (result.getDevice().getName() != null && result.getDevice().getAddress()!=null){
+                if (!lists.contains(result.getDevice()))
+                   lists.add(result.getDevice());
+            }
         }
 
         @Override
         public void onBatchScanResults(List<ScanResult> results) {
             super.onBatchScanResults(results);
+            Log.d(TAG, "onScanResult:  2== " );
         }
 
         @Override
         public void onScanFailed(int errorCode) {
             super.onScanFailed(errorCode);
+            Log.d(TAG, "onScanResult:  3== " );
         }
     };
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    }
+
+    public BluetoothGattCallback bluetoothGattCallback = new BluetoothGattCallback() {
+        @Override
+        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+            super.onConnectionStateChange(gatt, status, newState);
+            Log.d(TAG, "onConnectionStateChange: status ; " +  status );
+            Log.d(TAG, "onConnectionStateChange: newState ; " +  newState );
+        }
+    };
 }
