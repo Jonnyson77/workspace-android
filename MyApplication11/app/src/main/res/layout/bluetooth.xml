@@ -40,7 +40,7 @@
         </Button>
         <Button
             android:id="@+id/btn_scanle"
-            android:text="传统蓝牙扫描"
+            android:text="蓝牙可见"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
         </Button>
@@ -50,6 +50,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
         </Button>
+
+        <Button
+            android:id="@+id/btn_paired_cancle"
+            android:text="解除蓝牙配对"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+        </Button>
+
     </LinearLayout>
 
 </LinearLayout>

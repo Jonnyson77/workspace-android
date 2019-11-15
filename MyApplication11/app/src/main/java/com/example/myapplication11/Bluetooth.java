@@ -9,6 +9,7 @@ import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.BluetoothSocket;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
@@ -26,33 +27,39 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
+import com.example.myapplication11.controller.BluetoothController;
+
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+import javax.security.auth.PrivateCredentialPermission;
 
 public class Bluetooth extends Activity implements View.OnClickListener{
-    String TAG ="Bluetooth";
-    BluetoothManager mBluetoothManager ;
-    private BluetoothAdapter bluetoothAdapter ;
+    String TAG ="BluetoothController";
+
+
+    public static final int REQUEST_CODE = 0;
     private BluetoothBroadCast bluetoothBroadCast = new BluetoothBroadCast();
-    private IntentFilter intentFilter = new IntentFilter();
-    private BluetoothProfile.ServiceListener serviceListener;
-    private BluetoothHeadset headset;
     private Button btn_on;
     private Button btn_off;
     private Button btn_scan;
     private Button btn_stop;
     private Button btn_scanle;
     private Button btn_paired;
-    private BluetoothLeScanner bluetoothLeScanner;
-    private List<BluetoothDevice> lists = new ArrayList<BluetoothDevice>();
+
+    private Button btn_paired_cancle;
+    private BluetoothController mBluetoothController;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.bluetooth);
-        bluetoothBroadCast = new BluetoothBroadCast();
-        mBluetoothManager =(BluetoothManager)getSystemService(Context.BLUETOOTH_SERVICE);
-        bluetoothAdapter =mBluetoothManager.getAdapter();
-        init();
+        mBluetoothController = BluetoothController.getInstance();
+        initUI();
+        registerBluetoothReceiverr();
     }
 
     @Override
@@ -62,26 +69,39 @@ public class Bluetooth extends Activity implements View.OnClickListener{
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(bluetoothBroadCast);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    @Override
     public void onClick(View view) {
         switch (view.getId()){
             case R.id.btn_on:
-                Log.d(TAG, "onClick:   ------");
                 OnBluetooth();
                 break;
             case R.id.btn_off:
                 OffBluetooth();
                 break;
             case R.id.btn_scan:
-                ScanBluetoothLe();
+                ScanBluetooth();
                 break;
             case R.id.btn_stop :
                 StopScanBluetooth();
                 break;
             case R.id.btn_scanle :
-                ScanBluetooth();
+                bluetoothCanSee();
                 break;
             case R.id.btn_paired :
                 PairBluetooth();
+                break;
+            case R.id.btn_paired_cancle :
+                PairBluetoothCancle();
                 break;
             default:
                 break;
@@ -90,97 +110,76 @@ public class Bluetooth extends Activity implements View.OnClickListener{
 
     private void PairBluetooth() {
         // iPhone----48:3B:38:E0:FF:20
-        Log.d(TAG, "PairBluetooth: --" );
+        Log.d(TAG, "PairBluetooth: -- 开始配对" );
         String address = "48:3B:38:E0:FF:20";
-        for (int i =0 ;i<lists.size();i++){
-           if (  lists.get(i).getAddress().equals(address)){
-               BluetoothDevice device = lists.get(i);
-               // device.createBond();
-
+       for (int i =0 ;i<mBluetoothController.getDiscoveredDevices().size();i++){
+           if (  mBluetoothController.getDiscoveredDevices().get(i).getAddress().equals(address)){
+               BluetoothDevice device = mBluetoothController.getDiscoveredDevices().get(i);
+               device.createBond();
            }
         }
-        
+
     }
+
+
+    private void PairBluetoothCancle() {
+        // iPhone----48:3B:38:E0:FF:20
+        Log.d(TAG, "PairBluetoothCancle : -- 解除配对" );
+        String address = "48:3B:38:E0:FF:20";
+        for (int i =0 ;i<mBluetoothController.getDiscoveredDevices().size();i++){
+            if (  mBluetoothController.getDiscoveredDevices().get(i).getAddress().equals(address)){
+                BluetoothDevice device = mBluetoothController.getDiscoveredDevices().get(i);
+                try {
+                    Thread.sleep(3000);
+                    Log.d(TAG, "PairBluetoothCancle : -- 开始解除配对" );
+                    Method method = device.getClass().getMethod("removeBond", (Class[]) null);
+                    method.invoke(device,(Object[]) null);
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+        }
+
+    }
+
 
     public void ScanBluetooth() {
-        Log.d(TAG, "OnBluetooth: ljq -- scan Bluetooth" );
-        if (bluetoothAdapter!=null){
-            boolean enabled = bluetoothAdapter.isEnabled();
-            if (enabled){
-                boolean discovering = bluetoothAdapter.isDiscovering();
-                if (!discovering){
-                    lists.clear();
-                    bluetoothAdapter.startDiscovery();  // 开始扫描蓝牙设备
-                }
-            }else {
-                Toast.makeText(this,"蓝牙未开启，请开启蓝牙",Toast.LENGTH_SHORT).show();
-            }
+        Log.d(TAG, "OnBluetooth: ljq -- scan BluetoothController" );
+        if (mBluetoothController.isBluetoothOpened()){
+            mBluetoothController.findBluetoothDevice();
         }else {
-            Toast.makeText(this,"蓝牙不可用", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this,"蓝牙未开启用", Toast.LENGTH_SHORT).show();
         }
     }
 
-     public void StopScanBluetooth(){
-         Log.d(TAG, "OnBluetooth: ljq --stop scan Bluetooth" );
-         if (bluetoothAdapter!=null){
-             boolean enabled = bluetoothAdapter.isEnabled();
-             if (enabled){
-                 boolean discovering = bluetoothAdapter.isDiscovering();
-                    Log.d(TAG, "OnBluetooth: ljq --discovering  "  + discovering );
-                     bluetoothLeScanner.stopScan(scanCallback);
-                     printfBluetooth();
-             }else {
-                 Toast.makeText(this,"蓝牙未扫描，请开启蓝牙扫描",Toast.LENGTH_SHORT).show();
-             }
-         }else {
-             Toast.makeText(this,"蓝牙不可用", Toast.LENGTH_SHORT).show();
-         }
+    public void bluetoothCanSee() {
+        Log.d(TAG, "OnBluetooth: ljq -- Bluetooth can see" );
+        mBluetoothController.openBluetoothDiscoverable(this);
+    }
+
+
+    public void StopScanBluetooth(){
+         Log.d(TAG, "OnBluetooth: ljq --stop scan BluetoothController" );
+         mBluetoothController.stopFindBluetooth();
      }
 
-    public void ScanBluetoothLe() {
-        Log.d(TAG, "OnBluetooth: ljq -- Lescan Bluetooth" );
-        if (bluetoothAdapter!=null){
-            boolean enabled = bluetoothAdapter.isEnabled();
-            if (enabled){
-                boolean discovering = bluetoothAdapter.isDiscovering();
-                if (!discovering){
-                    lists.clear();
-                    Utils.checkPermission(Bluetooth.this,new String []{
-                            Manifest.permission.ACCESS_COARSE_LOCATION,
-                            Manifest.permission.ACCESS_FINE_LOCATION
-                    });
-                    bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
-                    bluetoothLeScanner.startScan(null,createScanSetting(),scanCallback);
-                }
-            }else {
-                Toast.makeText(this,"蓝牙未开启，请开启蓝牙",Toast.LENGTH_SHORT).show();
-            }
-        }else {
-            Toast.makeText(this,"蓝牙不可用", Toast.LENGTH_SHORT).show();
-        }
-    }
 
     public void OffBluetooth() {
-        Log.d(TAG, "OnBluetooth: ljq -- close Bluetooth" );
-        if (bluetoothAdapter!=null){
-            boolean enabled = bluetoothAdapter.isEnabled();
-            if (enabled){
-                bluetoothAdapter.disable(); // 关闭蓝牙
-            }
-        }else {
-            Toast.makeText(this,"蓝牙不可用", Toast.LENGTH_SHORT).show();
-        }
+        Log.d(TAG, "OnBluetooth: ljq -- close BluetoothController" );
+        mBluetoothController.closeBluetooth();
     }
 
-    private void init(){
-        Log.d(TAG, "Bluetooth: ljq -- init" );
+    private void initUI(){
+        Log.d(TAG, "Bluetooth : ljq -- initUI" );
         btn_on = (Button)findViewById(R.id.btn_on);
         btn_off = (Button)findViewById(R.id.btn_off);
         btn_scan = (Button)findViewById(R.id.btn_scan);
         btn_stop = (Button)findViewById(R.id.btn_stop);
         btn_scanle = (Button) findViewById(R.id.btn_scanle);
         btn_paired =(Button)findViewById(R.id.btn_paired);
+        btn_paired_cancle =(Button)findViewById(R.id.btn_paired_cancle);
 
+        btn_paired_cancle.setOnClickListener(this);
         btn_paired.setOnClickListener(this);
         btn_scanle.setOnClickListener(this);
         btn_stop.setOnClickListener(this);
@@ -189,34 +188,26 @@ public class Bluetooth extends Activity implements View.OnClickListener{
         btn_off.setOnClickListener(this);
 
 
-        intentFilter.addAction(BluetoothDevice.ACTION_FOUND);
-        intentFilter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED );
-        intentFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-
-        registerReceiver(bluetoothBroadCast,intentFilter);
     }
 
     public void OnBluetooth(){
-        Log.d(TAG, "OnBluetooth: ljq -- onpen Bluetooth" );
-        if (bluetoothAdapter!=null){
-            boolean enabled = bluetoothAdapter.isEnabled();
-            if (!enabled){
-                bluetoothAdapter.enable(); // 打开蓝牙
-            }
+        Log.d(TAG, "OnBluetooth: ljq -- onpen BluetoothController" );
+        if (mBluetoothController.isBluetoothEnable()){
+            mBluetoothController.openBluetooth(this,REQUEST_CODE);
         }else {
             Toast.makeText(this,"蓝牙不可用", Toast.LENGTH_SHORT).show();
         }
     }
     private void printfBluetooth(){
-        for (int i = 0; i < lists.size() ; i++ ){
-            if (lists.get(i).getName() == null) {
-                Log.d(TAG, "printfBluetooth: bluetooth : " + lists.get(i).getAddress()  + "----" +  lists.get(i).getAddress() + "---" +
-                        lists.get(i).getBluetoothClass() + "----" + lists.get(i).getBondState() + "-----" + lists.get(i) .getUuids()
-                        + "----" + lists.get(i).getType());
+        for (int i = 0; i < mBluetoothController.getDiscoveredDevices().size() ; i++ ){
+            if (mBluetoothController.getDiscoveredDevices().get(i).getName() == null) {
+                Log.d(TAG, "printfBluetooth: bluetooth : " + mBluetoothController.getDiscoveredDevices().get(i).getAddress()  + "----" +  mBluetoothController.getDiscoveredDevices().get(i).getAddress() + "---" +
+                        mBluetoothController.getDiscoveredDevices().get(i).getBluetoothClass() + "----" + mBluetoothController.getDiscoveredDevices().get(i).getBondState() + "-----" + mBluetoothController.getDiscoveredDevices().get(i) .getUuids()
+                        + "----" + mBluetoothController.getDiscoveredDevices().get(i).getType());
             }else {
-                Log.d(TAG, "printfBluetooth: bluetooth : " + lists.get(i).getName() + "----" +  lists.get(i).getAddress() + "---" +
-                        lists.get(i).getBluetoothClass() + "----" + lists.get(i).getBondState() + "-----" + lists.get(i) .getUuids()
-                        + "----" + lists.get(i).getType());
+                Log.d(TAG, "printfBluetooth: bluetooth : " + mBluetoothController.getDiscoveredDevices().get(i).getName() + "----" +  mBluetoothController.getDiscoveredDevices().get(i).getAddress() + "---" +
+                        mBluetoothController.getDiscoveredDevices().get(i).getBluetoothClass() + "----" + mBluetoothController.getDiscoveredDevices().get(i).getBondState() + "-----" + mBluetoothController.getDiscoveredDevices().get(i) .getUuids()
+                        + "----" + mBluetoothController.getDiscoveredDevices().get(i).getType());
 
             }
         }
@@ -226,65 +217,59 @@ public class Bluetooth extends Activity implements View.OnClickListener{
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             Log.d(TAG, "onReceive: action  ---" + action);
-            if (action.equals(BluetoothDevice.ACTION_FOUND)) {  //搜索到蓝牙设备
+
+            if (action.equals(BluetoothAdapter.ACTION_DISCOVERY_STARTED)){
+                Log.d(TAG, "onReceive: 开始扫描");
+                // 初始化列表
+                mBluetoothController.cleanDeviceLists();
+
+            }else if (action.equals(BluetoothDevice.ACTION_FOUND)) {
+                // 搜索到蓝牙设备
                 BluetoothDevice btd = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                lists.add(btd);
+                // 添加进容器
+                mBluetoothController.addDevices(btd);
             }else if (action.equals(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)){
-                Log.d(TAG, "onReceive:  lists " + lists.size());
-                Log.d(TAG, "onReceive: --------");
+                Log.d(TAG, "onReceive:  mBluetoothController.getDiscoveredDevices() " + mBluetoothController.getDiscoveredDevices().size());
+
                 printfBluetooth();
             }else if (action.equals(BluetoothDevice.ACTION_BOND_STATE_CHANGED )){
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                Log.d(TAG, "onReceive: device " +  device.getAddress());
-                Log.d(TAG, "onReceive: device " +  device.getBondState());
+                if (device == null){
+                    Toast.makeText(Bluetooth.this,"无设别",Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                int status = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, 0);
+                if(status == BluetoothDevice.BOND_BONDED) {
+                    // Toast.makeText(Bluetooth.this,"已经绑定"+device.getName(),Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, "onReceive:  已经绑定设备 ：" + device.getName() );
+                } else if(status == BluetoothDevice.BOND_BONDING) {
+                    Log.d(TAG, "onReceive:  正在绑定设备 ：" + device.getName() );
+
+                } else if(status == BluetoothDevice.BOND_NONE) {
+                    Log.d(TAG, "onReceive:  未绑定设备 ：" + device.getName() );
+
+                }
+            }else if (action.equals(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED)){
+                Log.d(TAG, "onReceive:  扫描模式 ：" );
+                int extra = intent.getIntExtra(BluetoothAdapter.EXTRA_SCAN_MODE,0);
+                Log.d(TAG, "onReceive: SCAN_MODE :" + extra);
             }
         }
     }
-    public ScanSettings createScanSetting() {
-        ScanSettings.Builder builder = new ScanSettings.Builder();
-        builder.setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY);
-        //builder.setReportDelay(100);//设置延迟返回时间
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            builder.setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES);
-        }
-        return builder.build();
+
+    private void registerBluetoothReceiverr(){
+        IntentFilter intentFilter = new IntentFilter();
+        // 查找设备
+        intentFilter.addAction(BluetoothDevice.ACTION_FOUND);
+        // 绑定状态改变
+        intentFilter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED );
+        // 查找完成
+        intentFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+        // 查找开始
+        intentFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
+        // 扫描模式改变
+        intentFilter.addAction(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED);
+
+        registerReceiver(bluetoothBroadCast,intentFilter);
     }
-
-    public ScanCallback scanCallback = new ScanCallback() {
-        @Override
-        public void onScanResult(int callbackType, ScanResult result) {
-            super.onScanResult(callbackType, result);
-            Log.d(TAG, "onScanResult: 1  == " + result.getDevice().getName());
-            if (result.getDevice().getName() != null && result.getDevice().getAddress()!=null){
-                if (!lists.contains(result.getDevice()))
-                   lists.add(result.getDevice());
-            }
-        }
-
-        @Override
-        public void onBatchScanResults(List<ScanResult> results) {
-            super.onBatchScanResults(results);
-            Log.d(TAG, "onScanResult:  2== " );
-        }
-
-        @Override
-        public void onScanFailed(int errorCode) {
-            super.onScanFailed(errorCode);
-            Log.d(TAG, "onScanResult:  3== " );
-        }
-    };
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-    }
-
-    public BluetoothGattCallback bluetoothGattCallback = new BluetoothGattCallback() {
-        @Override
-        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-            super.onConnectionStateChange(gatt, status, newState);
-            Log.d(TAG, "onConnectionStateChange: status ; " +  status );
-            Log.d(TAG, "onConnectionStateChange: newState ; " +  newState );
-        }
-    };
 }

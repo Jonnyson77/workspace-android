@@ -1,14 +1,14 @@
 package com.example.myapplication11.controller;
 
 import android.app.Activity;
-import android.app.Application;
+
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothManager;
+
 import android.content.Context;
 import android.content.Intent;
 
-import com.example.myapplication11.Bluetooth;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,15 +18,14 @@ import java.util.List;
  *
  * */
 
-public class BluetoothController extends Application {
+public class BluetoothController  {
 
-    private BluetoothManager mBluetoothManager ;
     private BluetoothAdapter mbluetoothAdapter ;
     private List<BluetoothDevice> lists = new ArrayList<>();
 
     private BluetoothController(){
-        mBluetoothManager = (BluetoothManager)getSystemService(Context.BLUETOOTH_SERVICE);
-        mbluetoothAdapter = mBluetoothManager.getAdapter();
+
+        mbluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     }
     private static class SingleTonHoler{
         private static BluetoothController mBluetoothController = new BluetoothController();
@@ -54,6 +53,16 @@ public class BluetoothController extends Application {
      * */
     public boolean isBluetoothOpened(){
         return mbluetoothAdapter.isEnabled();
+    }
+
+    /**
+     *
+     * close bluetooth
+     * */
+
+    public void closeBluetooth() {
+        assert (mbluetoothAdapter.isEnabled());
+        mbluetoothAdapter.disable();
     }
 
     /**
