@@ -1,41 +1,21 @@
 package com.example.myapplication11;
 
-import android.Manifest;
+
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothGattCallback;
-import android.bluetooth.BluetoothHeadset;
-import android.bluetooth.BluetoothManager;
-import android.bluetooth.BluetoothProfile;
-import android.bluetooth.BluetoothSocket;
-import android.bluetooth.le.BluetoothLeScanner;
-import android.bluetooth.le.ScanCallback;
-import android.bluetooth.le.ScanResult;
-import android.bluetooth.le.ScanSettings;
+
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
-
-import androidx.annotation.NonNull;
-
 import com.example.myapplication11.controller.BluetoothController;
-
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
-import javax.security.auth.PrivateCredentialPermission;
 
 public class Bluetooth extends Activity implements View.OnClickListener{
     String TAG ="BluetoothController";
@@ -49,8 +29,8 @@ public class Bluetooth extends Activity implements View.OnClickListener{
     private Button btn_stop;
     private Button btn_scanle;
     private Button btn_paired;
-
     private Button btn_paired_cancle;
+
     private BluetoothController mBluetoothController;
 
     @Override

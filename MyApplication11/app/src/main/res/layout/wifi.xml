@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <TextView
+        android:gravity="center"
+        android:textSize="19dp"
+        android:text="wifi功能大全"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"></TextView>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <Button
+            android:id="@+id/btn_on"
+            android:text="开启wifi"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+        </Button>
+        <Button
+            android:id="@+id/btn_off"
+            android:text="关闭wifi"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+        </Button>
+
+        <Button
+            android:id="@+id/btn_scan"
+            android:text="扫描wifi"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+        </Button>
+        <Button
+            android:id="@+id/btn_stop"
+            android:text="停止wifi"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+        </Button>
+        <Button
+            android:id="@+id/btn_scanle"
+            android:text="检测wifi状态"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+        </Button>
+        <Button
+            android:id="@+id/btn_paired"
+            android:text="获取Wi-Fi 扫描结果"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+        </Button>
+
+<!--        <Button-->
+<!--            android:id="@+id/btn_paired_cancle"-->
+<!--            android:text="解除蓝牙配对"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content">-->
+<!--        </Button>-->
+
+    </LinearLayout>
+
+</LinearLayout>
