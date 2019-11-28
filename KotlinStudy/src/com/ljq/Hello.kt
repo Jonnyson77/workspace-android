@@ -1,8 +1,12 @@
 package com.ljq
 
+
+class Hello( var name : String){
+    fun greet(){
+        println("hello , $name")
+    }
+}
 fun main(args : Array<String>) {
 
-    var name ="李四";
-        name = "张三";
-    println(name);
+    Hello("lisi").greet();
 }
