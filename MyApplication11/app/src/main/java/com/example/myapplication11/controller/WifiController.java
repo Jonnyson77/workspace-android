@@ -17,10 +17,10 @@ public class WifiController {
     private WifiInfo mWifiInfo;
     private WifiManager.WifiLock mWifiLock;
     private ScanResult mScanResult ;
-    private List<ScanResult> lists = new ArrayList<>();
+    private List<ScanResult> lists ;
     private StringBuffer mStringBuffer = new StringBuffer();
 
-    private WifiController(Context context){
+    public WifiController(Context context){
         mWifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
         mWifiInfo =mWifiManager.getConnectionInfo();
     }
@@ -32,6 +32,7 @@ public class WifiController {
 
     public void openNetCard(){
         if (!mWifiManager.isWifiEnabled()){
+            Log.d(TAG, "openNetCard: net card is not opened");
             mWifiManager.setWifiEnabled(true);
         }else {
             Log.d(TAG, "openNetCard: net card is opened");
@@ -79,7 +80,7 @@ public class WifiController {
         if (mWifiManager.getWifiState() == WifiManager.WIFI_STATE_ENABLED){
             mWifiManager.startScan();
             lists = mWifiManager.getScanResults();
-            if (lists!=null){
+            if (lists !=null){
                 Log.d(TAG, "scan: there is have wifi net ");
             }else {
                 Log.d(TAG, "scan: there is not have wifi net ");
@@ -96,10 +97,12 @@ public class WifiController {
        if (mStringBuffer != null){
            mStringBuffer = new StringBuffer();
        }
-       scan();
-
-       lists = mWifiManager.getScanResults();
-       if (lists!=null){
+         scan();
+        if (lists.size() > 0){
+            lists.clear();
+        }
+        lists = mWifiManager.getScanResults();
+       if (lists !=null){
            for (int i = 0; i < lists.size();i++ ){
                mScanResult = lists.get(i);
                mStringBuffer = mStringBuffer.append("NO.").append(i+1).append(":")
